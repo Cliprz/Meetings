@@ -1,17 +1,32 @@
 <?php
 
+/**
+ * Copyrights for You,Me and Us.
+ */
+
 class Upload {
 
+	/**
+	 * Current targting file
+	 *
+	 * @var array
+	 * @access private
+	 */
 	private $file;
 
 	/**
+	 * The max upload size
 	 *
-	 *
+	 * @var integer
+	 * @access private
 	 */
 	private $maxSize = 0;
 
 	/**
+	 * List of allow able mime types array
+	 *
 	 * @var mixed
+	 * @access private
 	 */
 	private $mimeTypes; 
 
@@ -19,12 +34,17 @@ class Upload {
 
 	private $savePath;
 
-	private $theNewFilename;
+	private $theNewFilename,$uploadedFilename;
 
 	/**
 	 * No errors
 	 */
 	private $currentError = 0;
+
+	/**
+	 *
+	 */
+	private $details = [];
 
 
 	public $errors = [
@@ -101,8 +121,7 @@ class Upload {
 
 	public function isExt () {
 		if (false !== strpos($this->file['name'],'.')) {
-			$parts = explode('.',$this->file['name']);
-			$ext   = array_pop($parts);
+			$ext = $this->getExt();
 			if (is_array($this->ext)) {
 				return in_array(strtolower($ext),$this->ext);
 			} else {
@@ -148,6 +167,7 @@ class Upload {
 	}
 
 	public function up () {
+		$start = microtime(true); // 0
 		if (!$this->isFile()) {
 			$this->setError(100);
 			return false;
@@ -169,7 +189,8 @@ class Upload {
 		} else {
 
 			// @see $this->saveDes();
-			$saveDes = $this->saveDes();
+			$saveDes = $this->savePath.$this->spaceToUnderScore($this->saveDes());
+			$uploadedFileName = $this->spaceToUnderScore($this->saveDes());
 
 			if (move_uploaded_file($this->file['tmp_name'],$saveDes)) {
 				chmod($saveDes,0644);
@@ -178,7 +199,21 @@ class Upload {
 					unlink($saveDes);
 					$this->setError(105);
 					return false;
-				} else {	
+				} else {
+					$info = pathinfo($saveDes);
+					$end = microtime(true);
+					$execute_time = number_format(($end - $start),2);
+					$this->details = [
+						'filename'      => $info['filename'],
+						'basename'      => $uploadedFileName,
+						'path'          => $saveDes,
+						'extions'       => $this->getExt(),
+						'mime_type'     => $this->file['type'],
+						'bytes'         => $this->file['size'],
+						'readable_size' => $this->convert($this->file['size']),
+						'url'           => $this->getUplaodedFileUrl($uploadedFileName),
+						'execute_time'  => $execute_time,  
+					];
 					return true;
 				}
 			} else {
@@ -187,13 +222,39 @@ class Upload {
 		}
 	}
 
+	private function spaceToUnderScore ($filename) {
+		return str_replace(' ','_',$filename);
+	}
+
+	private function getUplaodedFileUrl ($uploadedFilename) {
+		$http = (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on') ? 'https://' : 'http://'; 
+		$dir  = trim(dirname($_SERVER['SCRIPT_NAME']),'\\/');
+		$filterDir = empty($dir) ? '/' : '/'.$dir.'/';
+		return $http.$_SERVER['HTTP_HOST']
+			.$filterDir.basename($this->savePath).'/'
+			.$uploadedFilename;
+	}
+
 	private function saveDes () {
 		$name = is_null($this->theNewFilename) ? $this->file['name'] : $this->theNewFilename;
 		if (is_file($this->savePath.$name)) {
-			return $this->savePath.time().'_'.$name; 
+			$this->uploadedFilename = time().'_'.$name; 
 		} else {
-			return $this->savePath.$name;
+			$this->uploadedFilename = $name;
 		}
+		return $this->uploadedFilename;
+	}
+
+	/**
+	 *
+	 *
+	 *
+	 */
+	public function getExt ($exttion=true) {
+		// filename.php.png.png
+		$parts = explode('.',$this->file['name']);
+		$ext   = array_pop($parts);
+		return $exttion == true  ? $ext : implode('.',$parts);
 	}
 
 	/**
@@ -202,14 +263,14 @@ class Upload {
 	 *
 	 */
 	public function rename ($type='realname') {
-		$parts = explode('.',$this->file['name']);
-		$ext   = array_pop($parts);
+		$name = $this->getExt(false);
+		$ext   = $this->getExt();
 		switch ($type) {
 			case 'md5':
 				$this->theNewFilename = md5($this->file['name']).'.'.$ext;
 			break;
 			case 'realname':
-				$this->theNewFilename = implode('.',$parts).'_'.time().'.'.$ext;
+				$this->theNewFilename = $name.'_'.time().'.'.$ext;
 			break;
 		}
 		return $this;
@@ -221,6 +282,21 @@ class Upload {
 		} else {
 			return true;
 		}
+	}
+
+	public function details () {
+		return $this->details;
+	}
+
+	/**
+	 * To get the memory usage in KB or MB
+	 *
+	 * @author xelozz -at- gmail.com 
+	 * @return string
+	 */
+	public function convert($size) {
+		$unit=array('b','kb','mb','gb','tb','pb');
+		return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
 	}
 
 }
