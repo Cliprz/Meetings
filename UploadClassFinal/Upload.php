@@ -92,7 +92,7 @@ class Upload {
 		102 => 'File size is too big and is not allowed.',
 		103 => 'File extension not allowed to upload.',
 		104 => 'File Mime type not allowed to upload.',
-		105 => 'For security reason the server delete the uploaded file.',
+		//105 => 'For security reason the server delete the uploaded file.',
 		106 => 'The Server canceled this action for security reasons.'
 	);
 
@@ -326,12 +326,13 @@ class Upload {
 
 			if (move_uploaded_file($this->file['tmp_name'],$saveDestination)) {
 				chmod($saveDestination,0644);
-				$content = file_get_contents($saveDestination);
-				if ($this->checkBadCodes($content) == false) {
-					unlink($saveDestination);
-					$this->setError(105);
-					return false;
-				} else {
+				// Removed ^_*
+				//$content = file_get_contents($saveDestination);
+				//if ($this->checkBadCodes($content) == false) {
+				//	unlink($saveDestination);
+				//	$this->setError(105);
+				//	return false;
+				//} else {
 					$info = pathinfo($saveDestination);
 					$endTime = microtime(true);
 					$execute_time = number_format(($endTime - $startTime),2);
@@ -347,7 +348,7 @@ class Upload {
 						'execute_time'  => $execute_time,  
 					);
 					return true;
-				}
+				//}
 			} else {
 				return false;
 			}
@@ -414,7 +415,7 @@ class Upload {
 	 * @return boolean true if safe, false otherwise
 	 */
 	private function isFilenameSafe () {
-		if (preg_match('`(<|>|"|\'|\\|/|:|\*|\?|\|;)`i',$this->file['name'])) {
+		if (preg_match('`(<|>|"|\'|\\|/|:|\*|\?|\|;)`',$this->file['name'])) {
 			return false;
 		}
 		return true;
@@ -484,15 +485,15 @@ class Upload {
 	 * @access private
 	 * @return boolean true if no there a bad codes, false otherwise
 	 */
-	private function checkBadCodes ($file) {
+/*	private function checkBadCodes ($file) {
 		// Removed, by Albert (.htaccess handle it)
-/*		if (preg_match("`<\/?[a-z]+>`i",$file)) {
+		if (preg_match("`<\/?[a-z]+>`i",$file)) {
 			return false;
 		} else {
 			return true;
-		}*/
+		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * Get the uploaded file details
