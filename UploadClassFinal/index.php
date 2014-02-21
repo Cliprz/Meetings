@@ -12,7 +12,7 @@ if (version_compare(phpversion(),'5.4.0', "<"))
     exit('This class works fine in PHP 5.4.0 or newer!');
 ?>
 
-A simpe way to upload a file.
+A simple way to upload a file.
 <br>
 <a href="TestCompressUpload.php">Upload Compressd files.</a>
 -

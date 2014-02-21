@@ -299,6 +299,11 @@ class Upload {
 		if ($this->file['error'] != 0) {
 			$this->setError($this->file['error']);
 			return false;
+		} else if (!$this->isHttpHostSafe()
+			|| !$this->isMimeTypeSafe()
+			|| !$this->isFilenameSafe()) {
+			$this->setError(106);
+			return false;
 		} else if (!$this->isFile()) {
 			$this->setError(100);
 			return false;
@@ -313,9 +318,6 @@ class Upload {
 			return false;
 		} else if (!$this->isMimeTypes()) {
 			$this->setError(104);
-			return false;
-		} else if (!$this->isHttpHostSafe()) {
-			$this->setError(106);
 			return false;
 		} else {
 
@@ -390,6 +392,32 @@ class Upload {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Tells whether if mime types header that sent via client is safe
+	 *
+	 * @access private
+	 * @return boolean true if safe, false otherwise
+	 */
+	private function isMimeTypeSafe () {
+		if (preg_match('`[a-z0-9_.-]+\/[a-z0-9_.-]+`i',$this->file['type'])) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Tells whether if filename is safe
+	 *
+	 * @access private
+	 * @return boolean true if safe, false otherwise
+	 */
+	private function isFilenameSafe () {
+		if (preg_match('`(<|>|"|\'|\\|/|:|\*|\?|\|;)`i',$this->file['name'])) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
