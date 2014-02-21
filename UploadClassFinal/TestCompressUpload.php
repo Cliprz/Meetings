@@ -14,7 +14,7 @@ $upload = new Upload();
 // And set max upload size
 $upload->file('compress')->size(1024 * 1000 * 2); // 2MB
 // Set allowable mime types
-$upload->mimeTypes([
+$upload->mimeTypes(array(
 	'application/x-gtar',
 	'application/x-gzip',
 	'application/x-tar',
@@ -35,9 +35,9 @@ $upload->mimeTypes([
 	'application/x-jar',
 	'application/x-compressed',
 	'application/octet-stream'
-]);
+));
 // Set allowable extensions
-$upload->extensions(['zip','rar','gz','gtar','gzip','tar','tgz','z','7zip','jar']);
+$upload->extensions(array('zip','rar','gz','gtar','gzip','tar','tgz','z','7zip','jar'));
 // Set save path directory
 $upload->savePath(__DIR__.'/Uploads');
 // Set the rename type

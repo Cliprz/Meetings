@@ -1,4 +1,4 @@
-<Filesmatch "(?i)\.(php.?|(x|p|s)?html?|inc|cgi|pl|sh|exe)$">
+<Filesmatch "(?i)\.(php.?|(x|p|s)?html?|inc|py|jsp|asp|cgi|pl|sh|exe)$">
 	Order Deny,Allow
 	Deny from all
 </Filesmatch>

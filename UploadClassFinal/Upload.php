@@ -68,7 +68,7 @@ class Upload {
 	 * @var array
 	 * @access private
 	 */
-	private $details = [];
+	private $details = array();
 
 	/**
 	 * Error messages
@@ -76,7 +76,7 @@ class Upload {
 	 * @var array
 	 * @access private
 	 */
-	private $errors = [
+	private $errors = array(
 		// PHP Errors
 		0   => "There is no error.", 
 		1   => "The uploaded file exceeds the upload_max_filesize directive in php.ini", 
@@ -92,8 +92,9 @@ class Upload {
 		102 => 'File size is too big and is not allowed.',
 		103 => 'File extension not allowed to upload.',
 		104 => 'File Mime type not allowed to upload.',
-		105 => 'For security reason the server delete the uploaded file.'
-	];
+		105 => 'For security reason the server delete the uploaded file.',
+		106 => 'The Server canceled this action for security reasons.'
+	);
 
 	/**
 	 * Set error
@@ -313,6 +314,9 @@ class Upload {
 		} else if (!$this->isMimeTypes()) {
 			$this->setError(104);
 			return false;
+		} else if (!$this->isHttpHostSafe()) {
+			$this->setError(106);
+			return false;
 		} else {
 
 			$saveDestination  = $this->savePath.$this->spaceToUnderscore($this->getUploadedFilename());
@@ -329,7 +333,7 @@ class Upload {
 					$info = pathinfo($saveDestination);
 					$endTime = microtime(true);
 					$execute_time = number_format(($endTime - $startTime),2);
-					$this->details = [
+					$this->details = array(
 						'filename'      => $info['filename'],
 						'basename'      => $uploadedFileName,
 						'path'          => $saveDestination,
@@ -339,7 +343,7 @@ class Upload {
 						'readable_size' => $this->convert($this->file['size']),
 						'url'           => $this->getUploadedFileUrl($uploadedFileName),
 						'execute_time'  => $execute_time,  
-					];
+					);
 					return true;
 				}
 			} else {
@@ -373,6 +377,19 @@ class Upload {
 		return $http.$_SERVER['HTTP_HOST']
 			.$filterDirectory.basename($this->savePath).'/'
 			.$UploadedFilename;
+	}
+
+	/**
+	 * Fix XSS attacks from HTTP_HOST headers, (checking)
+	 *
+	 * @access private
+	 * @return boolean true if HTTP_HOST safe, false otherwise
+	 */
+	private function isHttpHostSafe () {
+		if (preg_match('`[a-z0-9_.-]+`i',$_SERVER['HTTP_HOST'])) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -440,7 +457,7 @@ class Upload {
 	 * @return boolean true if no there a bad codes, false otherwise
 	 */
 	private function checkBadCodes ($file) {
-		// Removed by Albert (.htaccess handle it)
+		// Removed, by Albert (.htaccess handle it)
 /*		if (preg_match("`<\/?[a-z]+>`i",$file)) {
 			return false;
 		} else {

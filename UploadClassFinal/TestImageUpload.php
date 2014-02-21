@@ -14,11 +14,11 @@ $upload = new Upload();
 // And set max upload size
 $upload->file('image')->size(1024 * 200);
 // Set allowable mime types
-$upload->mimeTypes([
+$upload->mimeTypes(array(
 	'image/pjpeg','image/jpg','image/jpeg','image/png','image/x-png','image/gif'
-]);
+));
 // Set allowable extensions
-$upload->extensions(['jpg','jpeg','png','gif']);
+$upload->extensions(array('jpg','jpeg','png','gif'));
 // Set save path directory
 $upload->savePath(__DIR__.'/Uploads');
 // Set the rename type
